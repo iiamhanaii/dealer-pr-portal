@@ -210,6 +210,14 @@ function RosterManager() {
   }
 
   async function removeRow(id) {
+    const person = roster.find(r => r.id === id)
+    const ok = window.confirm(
+      person
+        ? `刪除「${person.applicant_name}（${person.project}）」後，這個人在此項目底下送出的申請紀錄也會一併刪除，確定要刪除嗎？`
+        : '確定要刪除嗎？'
+    )
+    if (!ok) return
+    await supabase.from('applications').delete().eq('roster_id', id)
     await supabase.from('roster').delete().eq('id', id)
     load()
   }
