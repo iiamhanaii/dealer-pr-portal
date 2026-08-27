@@ -225,15 +225,17 @@ function ApplyForm() {
 
 function StatusLookup() {
   const [roster, setRoster] = useState([])
+  const [project, setProject] = useState('')
   const [name, setName] = useState('')
   const [apps, setApps] = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    supabase.from('roster').select('applicant_name').then(({ data }) => {
-      setRoster([...new Set((data || []).map(r => r.applicant_name))])
-    })
+    supabase.from('roster').select('*').then(({ data }) => setRoster(data || []))
   }, [])
+
+  const projects = [...new Set(roster.map(r => r.project))]
+  const namesForProject = roster.filter(r => r.project === project)
 
   async function lookup(e) {
     e.preventDefault()
@@ -242,6 +244,7 @@ function StatusLookup() {
       .from('applications')
       .select('*')
       .eq('applicant_name', name)
+      .eq('project', project)
       .order('submitted_at', { ascending: false })
     setApps(data || [])
     setLoading(false)
@@ -250,12 +253,19 @@ function StatusLookup() {
   return (
     <>
       <form onSubmit={lookup}>
-        <SectionCard icon={<Search size={20} color="#3A5872" />} iconBg="var(--blue-bg)" title="查詢我的申請" subtitle="選擇你的姓名，查看所有申請的審核狀態">
+        <SectionCard icon={<Search size={20} color="#3A5872" />} iconBg="var(--blue-bg)" title="查詢我的申請" subtitle="選擇項目與姓名，查看該項目下的申請狀態">
+          <div className="field">
+            <label>項目</label>
+            <select value={project} onChange={e => { setProject(e.target.value); setName('') }} required>
+              <option value="">請選擇項目</option>
+              {projects.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
           <div className="field">
             <label>申請人姓名</label>
-            <select value={name} onChange={e => setName(e.target.value)} required>
+            <select value={name} onChange={e => setName(e.target.value)} required disabled={!project}>
               <option value="">請選擇姓名</option>
-              {roster.map(n => <option key={n} value={n}>{n}</option>)}
+              {namesForProject.map(r => <option key={r.id} value={r.applicant_name}>{r.applicant_name}</option>)}
             </select>
           </div>
           <button className="btn btn-primary" type="submit" disabled={loading}>
