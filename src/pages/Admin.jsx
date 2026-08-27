@@ -217,7 +217,9 @@ function RosterManager() {
         : '確定要刪除嗎？'
     )
     if (!ok) return
-    await supabase.from('applications').delete().eq('roster_id', id)
+    if (person) {
+      await supabase.from('applications').delete().eq('project', person.project).eq('applicant_name', person.applicant_name)
+    }
     await supabase.from('roster').delete().eq('id', id)
     load()
   }
