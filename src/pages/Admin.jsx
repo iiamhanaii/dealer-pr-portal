@@ -224,6 +224,16 @@ function RosterManager() {
     load()
   }
 
+  async function clearAll() {
+    const ok = window.confirm('確定要刪除「所有」名單與申請紀錄嗎？這個動作無法復原，通常只在測試完、要正式上線前清空測試資料時使用。')
+    if (!ok) return
+    const ok2 = window.confirm('再次確認：這會把目前系統裡所有名單與所有申請紀錄「全部」刪除，確定嗎？')
+    if (!ok2) return
+    await supabase.from('applications').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+    await supabase.from('roster').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+    load()
+  }
+
   return (
     <>
       <div className="card">
@@ -254,7 +264,14 @@ function RosterManager() {
       </div>
 
       <div className="card">
-        <h2>目前名單</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <h2>目前名單</h2>
+          {roster.length > 0 && (
+            <button className="link-muted" onClick={clearAll} style={{ color: 'var(--reject-btn)' }}>
+              <Trash2 size={13} />清空全部名單與申請紀錄
+            </button>
+          )}
+        </div>
         {roster.length === 0 ? <div className="empty">尚未新增任何名單</div> : (
           <table className="roster-table">
             <thead>
