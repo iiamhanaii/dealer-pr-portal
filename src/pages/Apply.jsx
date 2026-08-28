@@ -46,6 +46,10 @@ function ApplyForm() {
   const [eventEnd, setEventEnd] = useState('')
   const [eventContent, setEventContent] = useState('')
   const [items, setItems] = useState([emptyItem()])
+  const [sameRecipient, setSameRecipient] = useState(true)
+  const [sharedRecipientName, setSharedRecipientName] = useState('')
+  const [sharedRecipientPhone, setSharedRecipientPhone] = useState('')
+  const [sharedRecipientAddress, setSharedRecipientAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState(null)
 
@@ -75,9 +79,23 @@ function ApplyForm() {
     if (!selected) { setMsg({ type: 'err', text: '請先選擇項目與申請人' }); return }
     if (!eventTheme || !eventStart || !eventEnd || !eventContent) { setMsg({ type: 'err', text: '請完整填寫企劃書內容' }); return }
     if (eventEnd < eventStart) { setMsg({ type: 'err', text: '結束日期不能早於開始日期' }); return }
-    const validItems = items.filter(i => i.product && i.spec && i.qty && i.amount && i.recipientName && i.recipientPhone && i.recipientAddress)
-    if (validItems.length === 0) { setMsg({ type: 'err', text: '請至少完整填寫一項公關品品項（含收件資訊）' }); return }
-    if (validItems.length !== items.length) { setMsg({ type: 'err', text: '有品項的收件資訊沒填完整，請檢查每一項' }); return }
+    const filledItems = items.filter(i => i.product && i.spec && i.qty && i.amount)
+    if (filledItems.length === 0) { setMsg({ type: 'err', text: '請至少填寫一項公關品品項' }); return }
+    if (filledItems.length !== items.length) { setMsg({ type: 'err', text: '有品項的商品/規格/數量/金額沒填完整，請檢查每一項' }); return }
+
+    let validItems
+    if (sameRecipient) {
+      if (!sharedRecipientName || !sharedRecipientPhone || !sharedRecipientAddress) {
+        setMsg({ type: 'err', text: '請完整填寫收件資訊' }); return
+      }
+      validItems = filledItems.map(i => ({ ...i, recipientName: sharedRecipientName, recipientPhone: sharedRecipientPhone, recipientAddress: sharedRecipientAddress }))
+    } else {
+      const withRecipient = filledItems.filter(i => i.recipientName && i.recipientPhone && i.recipientAddress)
+      if (withRecipient.length !== filledItems.length) {
+        setMsg({ type: 'err', text: '有品項的收件資訊沒填完整，請檢查每一項' }); return
+      }
+      validItems = filledItems
+    }
 
     setLoading(true)
     setMsg(null)
@@ -99,6 +117,7 @@ function ApplyForm() {
       setMsg({ type: 'ok', text: '申請已送出！可以到「查詢申請狀態」查看審核進度。' })
       setEventTheme(''); setEventStart(''); setEventEnd(''); setEventContent('')
       setItems([emptyItem()])
+      setSharedRecipientName(''); setSharedRecipientPhone(''); setSharedRecipientAddress('')
     }
   }
 
@@ -159,6 +178,47 @@ function ApplyForm() {
       </SectionCard>
 
       <SectionCard icon={<Package size={20} color="#8A6A3A" />} iconBg="var(--tan-bg)" title="公關品統整" subtitle="列出本次申請的公關品品項">
+        <div className="field">
+          <label>收件方式</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setSameRecipient(true)}
+              className={sameRecipient ? 'tab-btn active' : 'tab-btn'}
+              style={{ height: 44, flex: 1 }}
+            >
+              全部同一人收件
+            </button>
+            <button
+              type="button"
+              onClick={() => setSameRecipient(false)}
+              className={!sameRecipient ? 'tab-btn active' : 'tab-btn'}
+              style={{ height: 44, flex: 1 }}
+            >
+              每項各自不同收件人
+            </button>
+          </div>
+        </div>
+
+        {sameRecipient && (
+          <>
+            <div className="field">
+              <label>收件人姓名</label>
+              <input type="text" value={sharedRecipientName} onChange={e => setSharedRecipientName(e.target.value)} placeholder="所有品項都寄給這個人" />
+            </div>
+            <div className="grid-2">
+              <div className="field">
+                <label>聯絡電話</label>
+                <input type="tel" value={sharedRecipientPhone} onChange={e => setSharedRecipientPhone(e.target.value)} placeholder="收件人電話" />
+              </div>
+              <div className="field">
+                <label>收件地址</label>
+                <input type="text" value={sharedRecipientAddress} onChange={e => setSharedRecipientAddress(e.target.value)} placeholder="收件地址" />
+              </div>
+            </div>
+          </>
+        )}
+
         {items.map(item => (
           <div className="item-card" key={item.id}>
             <div className="field">
@@ -179,20 +239,24 @@ function ApplyForm() {
                 <input type="number" value={item.amount} onChange={e => updateItem(item.id, 'amount', e.target.value)} placeholder="單價" />
               </div>
             </div>
-            <div className="field">
-              <label>收件人姓名</label>
-              <input type="text" value={item.recipientName} onChange={e => updateItem(item.id, 'recipientName', e.target.value)} placeholder="這個品項要寄給誰" />
-            </div>
-            <div className="grid-2">
-              <div className="field">
-                <label>聯絡電話</label>
-                <input type="tel" value={item.recipientPhone} onChange={e => updateItem(item.id, 'recipientPhone', e.target.value)} placeholder="收件人電話" />
-              </div>
-              <div className="field">
-                <label>收件地址</label>
-                <input type="text" value={item.recipientAddress} onChange={e => updateItem(item.id, 'recipientAddress', e.target.value)} placeholder="收件地址" />
-              </div>
-            </div>
+            {!sameRecipient && (
+              <>
+                <div className="field">
+                  <label>收件人姓名</label>
+                  <input type="text" value={item.recipientName} onChange={e => updateItem(item.id, 'recipientName', e.target.value)} placeholder="這個品項要寄給誰" />
+                </div>
+                <div className="grid-2">
+                  <div className="field">
+                    <label>聯絡電話</label>
+                    <input type="tel" value={item.recipientPhone} onChange={e => updateItem(item.id, 'recipientPhone', e.target.value)} placeholder="收件人電話" />
+                  </div>
+                  <div className="field">
+                    <label>收件地址</label>
+                    <input type="text" value={item.recipientAddress} onChange={e => updateItem(item.id, 'recipientAddress', e.target.value)} placeholder="收件地址" />
+                  </div>
+                </div>
+              </>
+            )}
             <div className="item-card-row">
               <span className="item-subtotal">小計：NT$ {lineTotal(item).toLocaleString()}</span>
               <button type="button" className="item-remove-btn" onClick={() => removeItem(item.id)}><Trash2 size={13} />刪除</button>
