@@ -182,9 +182,15 @@ textarea { resize: vertical; min-height: 100px; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-date-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.date-field { position: relative; }
+.date-field { position: relative; width: 100%; min-width: 0; }
 .date-field svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; }
-.date-field input { padding-left: 40px; }
+.date-field input {
+  padding-left: 40px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
 .date-hint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 
 .item-card { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
