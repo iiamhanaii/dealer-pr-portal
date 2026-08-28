@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { UserRound, ClipboardList, Package, Truck, CalendarDays, ClipboardEdit, Search, Plus, Trash2 } from 'lucide-react'
+import { UserRound, ClipboardList, Package, CalendarDays, ClipboardEdit, Search, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function Apply() {
@@ -34,7 +34,7 @@ function SectionCard({ icon, iconBg, title, subtitle, children }) {
   )
 }
 
-function emptyItem() { return { id: 'i' + Math.random().toString(36).slice(2), product: '', spec: '', qty: '', amount: '' } }
+function emptyItem() { return { id: 'i' + Math.random().toString(36).slice(2), product: '', spec: '', qty: '', amount: '', recipientName: '', recipientPhone: '', recipientAddress: '' } }
 function lineTotal(i) { return (Number(i.qty) || 0) * (Number(i.amount) || 0) }
 
 function ApplyForm() {
@@ -46,9 +46,6 @@ function ApplyForm() {
   const [eventEnd, setEventEnd] = useState('')
   const [eventContent, setEventContent] = useState('')
   const [items, setItems] = useState([emptyItem()])
-  const [recipientName, setRecipientName] = useState('')
-  const [recipientPhone, setRecipientPhone] = useState('')
-  const [recipientAddress, setRecipientAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState(null)
 
@@ -78,9 +75,9 @@ function ApplyForm() {
     if (!selected) { setMsg({ type: 'err', text: '請先選擇項目與申請人' }); return }
     if (!eventTheme || !eventStart || !eventEnd || !eventContent) { setMsg({ type: 'err', text: '請完整填寫企劃書內容' }); return }
     if (eventEnd < eventStart) { setMsg({ type: 'err', text: '結束日期不能早於開始日期' }); return }
-    const validItems = items.filter(i => i.product && i.spec && i.qty && i.amount)
-    if (validItems.length === 0) { setMsg({ type: 'err', text: '請至少填寫一項公關品品項' }); return }
-    if (!recipientName || !recipientPhone || !recipientAddress) { setMsg({ type: 'err', text: '請完整填寫收件資訊' }); return }
+    const validItems = items.filter(i => i.product && i.spec && i.qty && i.amount && i.recipientName && i.recipientPhone && i.recipientAddress)
+    if (validItems.length === 0) { setMsg({ type: 'err', text: '請至少完整填寫一項公關品品項（含收件資訊）' }); return }
+    if (validItems.length !== items.length) { setMsg({ type: 'err', text: '有品項的收件資訊沒填完整，請檢查每一項' }); return }
 
     setLoading(true)
     setMsg(null)
@@ -94,9 +91,6 @@ function ApplyForm() {
       event_period: `${formatDate(eventStart)} - ${formatDate(eventEnd)}`,
       event_content: eventContent,
       items: validItems,
-      recipient_name: recipientName,
-      recipient_phone: recipientPhone,
-      recipient_address: recipientAddress,
     })
     setLoading(false)
     if (error) {
@@ -105,7 +99,6 @@ function ApplyForm() {
       setMsg({ type: 'ok', text: '申請已送出！可以到「查詢申請狀態」查看審核進度。' })
       setEventTheme(''); setEventStart(''); setEventEnd(''); setEventContent('')
       setItems([emptyItem()])
-      setRecipientName(''); setRecipientPhone(''); setRecipientAddress('')
     }
   }
 
@@ -186,6 +179,20 @@ function ApplyForm() {
                 <input type="number" value={item.amount} onChange={e => updateItem(item.id, 'amount', e.target.value)} placeholder="單價" />
               </div>
             </div>
+            <div className="field">
+              <label>收件人姓名</label>
+              <input type="text" value={item.recipientName} onChange={e => updateItem(item.id, 'recipientName', e.target.value)} placeholder="這個品項要寄給誰" />
+            </div>
+            <div className="grid-2">
+              <div className="field">
+                <label>聯絡電話</label>
+                <input type="tel" value={item.recipientPhone} onChange={e => updateItem(item.id, 'recipientPhone', e.target.value)} placeholder="收件人電話" />
+              </div>
+              <div className="field">
+                <label>收件地址</label>
+                <input type="text" value={item.recipientAddress} onChange={e => updateItem(item.id, 'recipientAddress', e.target.value)} placeholder="收件地址" />
+              </div>
+            </div>
             <div className="item-card-row">
               <span className="item-subtotal">小計：NT$ {lineTotal(item).toLocaleString()}</span>
               <button type="button" className="item-remove-btn" onClick={() => removeItem(item.id)}><Trash2 size={13} />刪除</button>
@@ -196,21 +203,6 @@ function ApplyForm() {
         <div className="items-total-row">
           <span>總計</span>
           <span className="amount">NT$ {itemsTotal.toLocaleString()}</span>
-        </div>
-      </SectionCard>
-
-      <SectionCard icon={<Truck size={20} color="#3A5872" />} iconBg="var(--blue-bg)" title="收件資訊" subtitle="公關品寄送資訊">
-        <div className="field">
-          <label>收件人姓名</label>
-          <input type="text" value={recipientName} onChange={e => setRecipientName(e.target.value)} required placeholder="請填寫收件人姓名" />
-        </div>
-        <div className="field">
-          <label>聯絡電話</label>
-          <input type="tel" value={recipientPhone} onChange={e => setRecipientPhone(e.target.value)} required placeholder="請填寫聯絡電話" />
-        </div>
-        <div className="field">
-          <label>收件地址</label>
-          <input type="text" value={recipientAddress} onChange={e => setRecipientAddress(e.target.value)} required placeholder="請填寫完整收件地址" />
         </div>
       </SectionCard>
 
@@ -278,24 +270,22 @@ function StatusLookup() {
 
               {a.items && (
                 <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>公關品統整</div>
-                  <ol style={{ fontSize: 12.5, color: 'var(--ink-soft)', paddingLeft: 18, margin: 0 }}>
-                    {a.items.map((i, idx) => (
-                      <li key={idx} style={{ marginBottom: 2 }}>{i.product}（{i.spec}）x{i.qty}　NT$ {((Number(i.qty) || 0) * (Number(i.amount) || 0)).toLocaleString()}</li>
-                    ))}
-                  </ol>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>公關品統整</div>
+                  {a.items.map((i, idx) => (
+                    <div key={idx} style={{ marginBottom: 8, paddingLeft: 4 }}>
+                      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                        {idx + 1}. {i.product}（{i.spec}）x{i.qty}　NT$ {((Number(i.qty) || 0) * (Number(i.amount) || 0)).toLocaleString()}
+                      </div>
+                      {i.recipientName && (
+                        <div style={{ fontSize: 12, color: 'var(--ink-soft)', paddingLeft: 14 }}>
+                          收件：{i.recipientName} · {i.recipientPhone} · {i.recipientAddress}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginTop: 4 }}>
                     總計：NT$ {a.items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.amount) || 0), 0).toLocaleString()}
                   </div>
-                </div>
-              )}
-
-              {a.recipient_name && (
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>收件資訊</div>
-                  <div className="app-row-meta">收件人姓名：{a.recipient_name}</div>
-                  <div className="app-row-meta">聯絡電話：{a.recipient_phone}</div>
-                  <div className="app-row-meta">收件地址：{a.recipient_address}</div>
                 </div>
               )}
 
