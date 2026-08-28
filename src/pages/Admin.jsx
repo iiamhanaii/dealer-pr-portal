@@ -139,23 +139,22 @@ function ReviewApplications() {
           <div className="app-row-content">{a.event_content}</div>
           {a.items && (
             <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>公關品統整</div>
-              <ol style={{ fontSize: 12.5, color: 'var(--ink)', paddingLeft: 18, margin: 0 }}>
-                {a.items.map((i, idx) => (
-                  <li key={idx} style={{ marginBottom: 2 }}>{i.product}（{i.spec}）x{i.qty}　NT$ {((Number(i.qty) || 0) * (Number(i.amount) || 0)).toLocaleString()}</li>
-                ))}
-              </ol>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>公關品統整</div>
+              {a.items.map((i, idx) => (
+                <div key={idx} style={{ marginBottom: 8, paddingLeft: 4 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--ink)' }}>
+                    {idx + 1}. {i.product}（{i.spec}）x{i.qty}　NT$ {((Number(i.qty) || 0) * (Number(i.amount) || 0)).toLocaleString()}
+                  </div>
+                  {i.recipientName && (
+                    <div style={{ fontSize: 12, color: 'var(--ink-soft)', paddingLeft: 14 }}>
+                      收件：{i.recipientName} · {i.recipientPhone} · {i.recipientAddress}
+                    </div>
+                  )}
+                </div>
+              ))}
               <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', marginTop: 4 }}>
                 總計：NT$ {a.items.reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.amount) || 0), 0).toLocaleString()}
               </div>
-            </div>
-          )}
-          {a.recipient_name && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>收件資訊</div>
-              <div className="app-row-meta">收件人姓名：{a.recipient_name}</div>
-              <div className="app-row-meta">聯絡電話：{a.recipient_phone}</div>
-              <div className="app-row-meta">收件地址：{a.recipient_address}</div>
             </div>
           )}
 
