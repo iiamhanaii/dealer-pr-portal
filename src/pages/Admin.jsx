@@ -218,9 +218,11 @@ function RosterManager() {
     )
     if (!ok) return
     if (person) {
-      await supabase.from('applications').delete().eq('project', person.project).eq('applicant_name', person.applicant_name)
+      const { error: e1 } = await supabase.from('applications').delete().eq('project', person.project).eq('applicant_name', person.applicant_name)
+      if (e1) { alert('刪除申請紀錄時發生錯誤：' + e1.message); return }
     }
-    await supabase.from('roster').delete().eq('id', id)
+    const { error: e2 } = await supabase.from('roster').delete().eq('id', id)
+    if (e2) { alert('刪除名單時發生錯誤：' + e2.message); return }
     load()
   }
 
@@ -229,8 +231,11 @@ function RosterManager() {
     if (!ok) return
     const ok2 = window.confirm('再次確認：這會把目前系統裡所有名單與所有申請紀錄「全部」刪除，確定嗎？')
     if (!ok2) return
-    await supabase.from('applications').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-    await supabase.from('roster').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+    const { error: e1 } = await supabase.from('applications').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+    if (e1) { alert('清空申請紀錄時發生錯誤：' + e1.message); return }
+    const { error: e2 } = await supabase.from('roster').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+    if (e2) { alert('清空名單時發生錯誤：' + e2.message); return }
+    alert('已清空所有名單與申請紀錄')
     load()
   }
 
