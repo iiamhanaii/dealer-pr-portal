@@ -182,8 +182,8 @@ textarea { resize: vertical; min-height: 100px; }
 .roster-table th { text-align: left; color: var(--ink-soft); font-weight: 600; padding: 9px 6px; border-bottom: 2px solid var(--line); }
 .roster-table td { padding: 9px 6px; border-bottom: 1px solid var(--line); }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.grid-date-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.grid-date-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .date-field { position: relative; width: 100%; min-width: 0; }
 .date-field svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; }
 .date-field input {
@@ -218,7 +218,7 @@ textarea { resize: vertical; min-height: 100px; }
 .items-total-row .amount { font-size: 16px; }
 
 @media (max-width: 560px) {
-  .grid-2, .grid-date-2 { grid-template-columns: 1fr; }
+  .grid-2, .grid-date-2 { grid-template-columns: minmax(0, 1fr); }
 }
 
 .login-wrap { max-width: 360px; margin: 60px auto; }
