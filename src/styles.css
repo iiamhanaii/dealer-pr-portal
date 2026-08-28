@@ -184,9 +184,16 @@ textarea { resize: vertical; min-height: 100px; }
 
 .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .grid-date-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
-.date-field { position: relative; width: 100%; min-width: 0; }
-.date-field svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; }
+.date-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  display: block;
+}
+.date-field svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; z-index: 1; }
 .date-field input {
+  display: block;
   padding-left: 40px;
   width: 100%;
   max-width: 100%;
