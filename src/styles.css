@@ -195,10 +195,16 @@ textarea { resize: vertical; min-height: 100px; }
 .date-field input {
   display: block;
   padding-left: 40px;
-  width: 100%;
-  max-width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   box-sizing: border-box;
-  min-width: 0;
+  min-width: 0 !important;
+  -webkit-min-logical-width: 0 !important;
+}
+input[type="date"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  -webkit-min-logical-width: 0 !important;
 }
 .date-hint { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 
